@@ -3,7 +3,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import type { User } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabaseClient';
-import { getCurrentUserProfile, isAdminProfile, type Profile, type UserRole } from '@/lib/auth';
+import { getCurrentUserProfile, isAdminUser, type Profile, type UserRole } from '@/lib/auth';
 
 interface AuthContextValue {
   user: User | null;
@@ -77,7 +77,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, profile, role: profile?.role ?? null, isAdmin: isAdminProfile(profile), loading, profileLoading, signIn, signUp, signOut }}>
+    <AuthContext.Provider value={{ user, profile, role: isAdminUser(user, profile) ? 'admin' : profile?.role ?? null, isAdmin: isAdminUser(user, profile), loading, profileLoading, signIn, signUp, signOut }}>
       {children}
     </AuthContext.Provider>
   );

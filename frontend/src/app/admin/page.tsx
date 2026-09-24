@@ -53,11 +53,11 @@ export default function AdminStudio() {
         if (ordersError) throw ordersError;
         setOrders((data ?? []) as OrderRecord[]);
       } else if (view === 'customers') {
-        const { data, error: customersError } = await supabase.from('profiles').select('id, email, role, admin_identifier, display_name, created_at').eq('role', 'customer').order('created_at', { ascending: false });
+        const { data, error: customersError } = await supabase.from('profiles').select('id, email, role, admin_seq_id, display_name, created_at').eq('role', 'customer').order('created_at', { ascending: false });
         if (customersError) throw customersError;
         setCustomers((data ?? []).filter((item) => item.role === 'customer') as Profile[]);
       } else {
-        const { data, error: adminsError } = await supabase.from('profiles').select('id, email, role, admin_identifier, display_name, created_at').eq('role', 'admin').order('created_at', { ascending: true });
+        const { data, error: adminsError } = await supabase.from('profiles').select('id, email, role, admin_seq_id, display_name, created_at').eq('role', 'admin').order('created_at', { ascending: true });
         if (adminsError) throw adminsError;
         setAdmins((data ?? []).filter((item) => item.role === 'admin') as Profile[]);
       }
@@ -90,7 +90,7 @@ export default function AdminStudio() {
     <main className="admin-shell">
       <header className="admin-header">
         <Link href="/" className="brand-lockup"><span className="monogram">LG</span><span><strong>LEGACY GOODS</strong><small>ADMIN STUDIO</small></span></Link>
-        <div className="admin-header-actions"><span className="admin-badge">{profile?.admin_identifier ?? 'ADMIN'}</span><Link href="/" className="admin-view-store">↗ View store</Link><button type="button" onClick={() => void signOut()} className="admin-logout">Log out</button></div>
+        <div className="admin-header-actions"><span className="admin-badge">{profile?.admin_seq_id ?? 'ADMIN'}</span><Link href="/" className="admin-view-store">↗ View store</Link><button type="button" onClick={() => void signOut()} className="admin-logout">Log out</button></div>
       </header>
       <div className="admin-layout">
         <aside className="admin-sidebar">
@@ -111,7 +111,7 @@ export default function AdminStudio() {
           ) : view === 'customers' ? (
             <div className="admin-directory">{customers.map((customer) => <article className="directory-row" key={customer.id}><div className="directory-avatar">{(customer.display_name ?? 'C').slice(0, 1).toUpperCase()}</div><div><strong>{customer.display_name ?? 'Customer'}</strong><small>{customer.email ?? customer.id}</small></div><span>{formatDate(customer.created_at)}</span><button type="button" disabled={actionId === customer.id} onClick={() => void changeRole(customer.id, 'admin')} className="directory-action">Promote to admin</button></article>)}{customers.length === 0 && <div className="admin-empty">No customer profiles found.</div>}</div>
           ) : (
-            <div className="admin-directory">{admins.map((admin) => <article className="directory-row" key={admin.id}><div className="directory-avatar admin">✦</div><div><strong>{admin.admin_identifier ?? 'ADMIN'}</strong><small>{admin.email ?? 'Email unavailable'}</small></div><span>{formatDate(admin.created_at)}</span><button type="button" disabled={actionId === admin.id || admin.id === user.id} onClick={() => void changeRole(admin.id, 'customer')} className="directory-action">{admin.id === user.id ? 'Current account' : 'Demote'}</button></article>)}{admins.length === 0 && <div className="admin-empty">No admin profiles found.</div>}</div>
+            <div className="admin-directory">{admins.map((admin) => <article className="directory-row" key={admin.id}><div className="directory-avatar admin">✦</div><div><strong>{admin.admin_seq_id ?? 'ADMIN'}</strong><small>{admin.email ?? 'Email unavailable'}</small></div><span>{formatDate(admin.created_at)}</span><button type="button" disabled={actionId === admin.id || admin.id === user.id} onClick={() => void changeRole(admin.id, 'customer')} className="directory-action">{admin.id === user.id ? 'Current account' : 'Demote'}</button></article>)}{admins.length === 0 && <div className="admin-empty">No admin profiles found.</div>}</div>
           )}
         </section>
       </div>

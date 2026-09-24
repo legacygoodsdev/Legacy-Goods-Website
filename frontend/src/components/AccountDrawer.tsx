@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import type { User } from '@supabase/supabase-js';
-import type { Profile } from '@/lib/auth';
+import { isAdminUser, type Profile } from '@/lib/auth';
 
 interface Props {
   user: User;
@@ -12,6 +12,8 @@ interface Props {
 }
 
 export default function AccountDrawer({ user, profile, onClose, onSignOut }: Props) {
+  if (isAdminUser(user, profile)) return null;
+
   return (
     <div className="fixed inset-0 z-50" role="dialog" aria-modal="true" aria-label="My account">
       <button type="button" aria-label="Close account" onClick={onClose} className="absolute inset-0 bg-black/70" />

@@ -12,7 +12,7 @@ interface Props {
 }
 
 export default function Navbar({ cartCount, onBagClick, onPreviewNotice }: Props) {
-  const { user, profile, isAdmin, loading, signOut } = useAuth();
+  const { user, profile, isAdmin, loading, profileLoading, signOut } = useAuth();
   const [accountOpen, setAccountOpen] = useState(false);
 
   return (
@@ -30,18 +30,18 @@ export default function Navbar({ cartCount, onBagClick, onPreviewNotice }: Props
         </nav>
         <div className="header-actions">
           <a href="https://instagram.com/locacollection1" target="_blank" rel="noreferrer" className="hidden text-xs text-[#c5a059] transition hover:text-[#f4f1ea] sm:block">@locacollection1</a>
-          {!loading && isAdmin && (
+          {!loading && !profileLoading && isAdmin && (
             <>
-              <span className="admin-badge">{profile?.admin_identifier ?? 'ADMIN'}</span>
+              <span className="admin-badge">{profile?.admin_seq_id ?? 'ADMIN'}</span>
               <Link href="/admin" className="admin-studio-link">Admin Studio ↗</Link>
             </>
           )}
-          {!loading && !isAdmin && user && (
+          {!loading && !profileLoading && !isAdmin && user && (
             <button type="button" onClick={() => setAccountOpen(true)} className="account-icon" aria-label="Open my profile">⌾</button>
           )}
-          {!loading && !user && <Link href="/login" className="admin-studio-link">Login / Sign Up</Link>}
-          <button type="button" onClick={isAdmin ? onPreviewNotice : onBagClick} className="cart-button" aria-label={isAdmin ? 'Catalogue preview mode' : `Open shopping bag, ${cartCount} items`}>
-            {isAdmin ? 'Preview only' : <>Bag <span>{cartCount}</span></>}
+          {!loading && !profileLoading && !user && <Link href="/login" className="admin-studio-link">Login / Sign Up</Link>}
+          <button type="button" onClick={isAdmin || profileLoading ? onPreviewNotice : onBagClick} className="cart-button" aria-label={isAdmin ? 'Catalogue preview mode' : `Open shopping bag, ${cartCount} items`}>
+            {isAdmin ? 'Preview only' : profileLoading ? 'Checking access' : <>Bag <span>{cartCount}</span></>}
           </button>
         </div>
       </header>

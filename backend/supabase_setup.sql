@@ -14,7 +14,7 @@ create table if not exists public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   email text,
   role public.user_role not null default 'customer',
-  admin_identifier text unique,
+  admin_seq_id text unique,
   display_name text,
   created_at timestamptz not null default timezone('utc', now())
 );
@@ -42,13 +42,13 @@ begin
     where role = 'admin'
   )
   update public.profiles as profile
-  set admin_identifier = 'ADMIN_LOCA' || ranked_admins.sequence_number
+  set admin_seq_id = 'ADMIN_LOCA' || ranked_admins.sequence_number
   from ranked_admins
   where profile.id = ranked_admins.id;
 
   update public.profiles
-  set admin_identifier = null
-  where role <> 'admin' and admin_identifier is not null;
+  set admin_seq_id = null
+  where role <> 'admin' and admin_seq_id is not null;
 
   if tg_op = 'DELETE' then return old; end if;
   return new;

@@ -28,7 +28,7 @@ const formatPrice = (amount: number) => `PKR ${amount.toLocaleString('en-PK')}`;
 
 export default function Home() {
   const router = useRouter();
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin, profileLoading } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState<(typeof categories)[number]>('All');
@@ -69,6 +69,10 @@ export default function Home() {
   const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
   const addToCart = (product: Product) => {
+    if (user && profileLoading) {
+      setToast('Checking account access...');
+      return;
+    }
     if (isAdmin) {
       setToast('Catalogue Preview Mode — Admins cannot place orders.');
       return;
@@ -94,6 +98,10 @@ export default function Home() {
   };
 
   const handleCheckout = () => {
+    if (user && profileLoading) {
+      setToast('Checking account access...');
+      return;
+    }
     if (isAdmin) {
       setToast('Catalogue Preview Mode — Admins cannot place orders.');
       return;
