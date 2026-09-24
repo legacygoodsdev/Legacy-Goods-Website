@@ -38,7 +38,8 @@ export default function LoginPage() {
         else router.replace(getNextPath());
       }
     } catch (authError) {
-      setError(authError instanceof Error ? authError.message : 'Authentication failed.');
+      const message = authError instanceof Error ? authError.message : '';
+      setError(message.includes('fetch') || message.includes('network') ? 'Unable to reach Supabase Auth. Check your connection and try again.' : message || 'Authentication failed.');
     } finally {
       setSubmitting(false);
     }

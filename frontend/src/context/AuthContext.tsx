@@ -40,13 +40,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let mounted = true;
 
-    supabase.auth.getSession().then(({ data }) => {
-      if (mounted) {
-        setUser(data.session?.user ?? null);
-        setLoading(false);
-        void loadProfile(data.session?.user ?? null);
-      }
-    });
+    supabase.auth.getSession()
+      .then(({ data, error }) => {
+        if (error) throw error;
+        if (mounted) {
+          setUser(data.session?.user ?? null);
+          void loadProfile(data.session?.user ?? null);
+        }
+      })
+      .catch((error: unknown) => {
+        console.error('Unable to restore Supabase session:', error);
+        if (mounted) {
+          setUser(null);
+          void loadProfile(null);
+        }
+      })
+      .finally(() => {
+        if (mounted) setLoading(false);
+      });
 
     const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
@@ -61,8 +72,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) throw error;
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw new Error(error.message);
+      if (!data.session || !data.user) throw new Error('Supabase returned no active session.');
+    } catch (error) {
+      if (error instanceof Error) throw error;
+      throw new Error('Unable to reach Supabase Auth. Check your connection and try again.');
+    }
   };
 
   const signUp = async (email: string, password: string) => {
