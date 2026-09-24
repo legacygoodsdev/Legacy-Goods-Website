@@ -12,7 +12,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
-  const router = useRouter();
 
   async function checkAdminUser() {
     try {
@@ -61,7 +60,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       return;
     }
 
-    // Re-verify after successful login
     await checkAdminUser();
   };
 
@@ -119,7 +117,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
           <div className="mt-6 text-center">
             <a href="/Legacy-Goods-Website/" className="text-xs text-slate-400 hover:text-white transition">
-              ← Return to Home
+              ← Return to Storefront
             </a>
           </div>
         </div>
