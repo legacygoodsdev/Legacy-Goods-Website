@@ -62,8 +62,13 @@ security definer
 set search_path = public
 as $$
 begin
-  insert into public.profiles (id, email, display_name)
-  values (new.id, new.email, coalesce(new.raw_user_meta_data ->> 'display_name', split_part(new.email, '@', 1)))
+  insert into public.profiles (id, email, role, display_name)
+  values (
+    new.id,
+    new.email,
+    case when lower(new.email) = 'legacygoods.dev@gmail.com' then 'admin'::public.user_role else 'customer'::public.user_role end,
+    coalesce(new.raw_user_meta_data ->> 'display_name', split_part(new.email, '@', 1))
+  )
   on conflict (id) do nothing;
   return new;
 end;
@@ -151,5 +156,10 @@ update public.profiles as profile
 set email = users.email
 from auth.users as users
 where profile.id = users.id and profile.email is distinct from users.email;
+
+update public.profiles as profile
+set role = 'admin'::public.user_role
+from auth.users as users
+where profile.id = users.id and lower(users.email) = 'legacygoods.dev@gmail.com';
 
 update public.profiles set role = role;

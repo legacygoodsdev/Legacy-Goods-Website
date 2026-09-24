@@ -12,7 +12,7 @@ const getNextPath = () => {
 
 export default function LoginPage() {
   const router = useRouter();
-  const { user, loading, signIn, signUp } = useAuth();
+  const { user, isAdmin, loading, profileLoading, signIn, signUp } = useAuth();
   const [mode, setMode] = useState<'signIn' | 'signUp'>('signIn');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -21,8 +21,8 @@ export default function LoginPage() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (!loading && user) router.replace(getNextPath());
-  }, [loading, router, user]);
+    if (!loading && !profileLoading && user) router.replace(isAdmin ? '/admin' : getNextPath());
+  }, [isAdmin, loading, profileLoading, router, user]);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -32,7 +32,6 @@ export default function LoginPage() {
     try {
       if (mode === 'signIn') {
         await signIn(email, password);
-        router.replace(getNextPath());
       } else {
         const result = await signUp(email, password);
         if (result.needsEmailConfirmation) setMessage('Check your email to confirm your account, then sign in.');
