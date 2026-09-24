@@ -12,9 +12,33 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
-const supabaseUrl = process.env.SUPABASE_URL!;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY!;
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY;
+
+if (!supabaseUrl || !supabaseKey) {
+  throw new Error('SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY or SUPABASE_ANON_KEY are required');
+}
+
 const supabase = createClient(supabaseUrl, supabaseKey);
+
+const paymentMethods = ['COD', 'EasyPaisa', 'JazzCash', 'BankTransfer'] as const;
+type PaymentMethod = (typeof paymentMethods)[number];
+
+interface OrderPayload {
+  customer_name: unknown;
+  customer_email: unknown;
+  customer_phone: unknown;
+  shipping_address: unknown;
+  city: unknown;
+  payment_method: unknown;
+  total_amount: unknown;
+}
+
+const isNonEmptyString = (value: unknown): value is string =>
+  typeof value === 'string' && value.trim().length > 0;
+
+const isPaymentMethod = (value: unknown): value is PaymentMethod =>
+  typeof value === 'string' && paymentMethods.includes(value as PaymentMethod);
 
 // Health check endpoint
 app.get('/api/health', (req: Request, res: Response) => {
@@ -32,19 +56,37 @@ app.get('/api/products', async (req: Request, res: Response) => {
 
 // Create a new order
 app.post('/api/orders', async (req: Request, res: Response) => {
-  const { customer_name, customer_email, customer_phone, shipping_address, city, payment_method, total_amount } = req.body;
+  const {
+    customer_name,
+    customer_email,
+    customer_phone,
+    shipping_address,
+    city,
+    payment_method,
+    total_amount,
+  } = req.body as OrderPayload;
 
-  if (!customer_name || !customer_phone || !shipping_address || !city || !payment_method) {
-    return res.status(400).json({ error: 'Missing required customer or delivery fields' });
+  if (
+    !isNonEmptyString(customer_name) ||
+    !isNonEmptyString(customer_email) ||
+    !isNonEmptyString(customer_phone) ||
+    !isNonEmptyString(shipping_address) ||
+    !isNonEmptyString(city) ||
+    !isPaymentMethod(payment_method) ||
+    typeof total_amount !== 'number' ||
+    !Number.isFinite(total_amount) ||
+    total_amount <= 0
+  ) {
+    return res.status(400).json({ error: 'Invalid order details' });
   }
 
   const { data, error } = await supabase.from('orders').insert([
     {
-      customer_name,
-      customer_email,
-      customer_phone,
-      shipping_address,
-      city,
+      customer_name: customer_name.trim(),
+      customer_email: customer_email.trim(),
+      customer_phone: customer_phone.trim(),
+      shipping_address: shipping_address.trim(),
+      city: city.trim(),
       payment_method,
       total_amount,
       payment_status: payment_method === 'COD' ? 'Pending (COD)' : 'Awaiting Payment'
