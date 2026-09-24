@@ -32,7 +32,7 @@ jobs:
         run: |
           if [ -f "package.json" ]; then
             npm install
-          elif [ -f "frontend/package.json" ]; then
+          else
             cd frontend && npm install
           fi
 
@@ -42,23 +42,14 @@ jobs:
         run: |
           if [ -f "package.json" ]; then
             npm run build
-          elif [ -f "frontend/package.json" ]; then
+          else
             cd frontend && npm run build
-          fi
-
-      - name: Locate Output Directory
-        id: set-out-dir
-        run: |
-          if [ -d "out" ]; then
-            echo "out_path=./out" >> $GITHUB_OUTPUT
-          elif [ -d "frontend/out" ]; then
-            echo "out_path=./frontend/out" >> $GITHUB_OUTPUT
           fi
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ${{ steps.set-out-dir.outputs.out_path }}
+          path: 'frontend/out'
 
       - name: Deploy to GitHub Pages
         id: deployment
