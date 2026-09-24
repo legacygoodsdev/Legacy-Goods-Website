@@ -42,6 +42,7 @@ export default function CheckoutModal({ items, totalAmount, onClose }: Props) {
     try {
       await createOrder({
         ...form,
+        user_id: user.id,
         customer_email: user.email,
         total_amount: totalAmount,
       });

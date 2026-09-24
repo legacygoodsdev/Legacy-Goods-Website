@@ -6,7 +6,7 @@ import { fetchProducts } from '@/lib/api';
 import type { CartItem, Product, ProductCategory } from '@/types';
 import CheckoutModal from '@/components/CheckoutModal';
 import CartDrawer from '@/components/CartDrawer';
-import AuthControls from '@/components/AuthControls';
+import Navbar from '@/components/Navbar';
 import { useAuth } from '@/context/AuthContext';
 
 const categories: Array<'All' | ProductCategory> = ['All', 'Apparel', 'Leather Goods', 'Accessories'];
@@ -28,7 +28,7 @@ const formatPrice = (amount: number) => `PKR ${amount.toLocaleString('en-PK')}`;
 
 export default function Home() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState<(typeof categories)[number]>('All');
@@ -36,6 +36,7 @@ export default function Home() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [cartOpen, setCartOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [toast, setToast] = useState('');
 
   useEffect(() => {
     async function loadProducts() {
@@ -51,6 +52,12 @@ export default function Home() {
     loadProducts();
   }, []);
 
+  useEffect(() => {
+    if (!toast) return;
+    const timeout = window.setTimeout(() => setToast(''), 3500);
+    return () => window.clearTimeout(timeout);
+  }, [toast]);
+
   const filteredProducts = products.filter((product) => {
     const category = categoryFor(product);
     const matchesCategory = activeCategory === 'All' || category === activeCategory;
@@ -62,6 +69,10 @@ export default function Home() {
   const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
   const addToCart = (product: Product) => {
+    if (isAdmin) {
+      setToast('Catalogue Preview Mode — Admins cannot place orders.');
+      return;
+    }
     if (!user) {
       router.push('/login');
       return;
@@ -83,6 +94,10 @@ export default function Home() {
   };
 
   const handleCheckout = () => {
+    if (isAdmin) {
+      setToast('Catalogue Preview Mode — Admins cannot place orders.');
+      return;
+    }
     if (!user) {
       router.push('/login');
       return;
@@ -95,23 +110,7 @@ export default function Home() {
 
   return (
     <main className="site-shell min-h-screen">
-      <header className="site-header">
-        <a href="#top" className="brand-lockup" aria-label="Legacy Goods home">
-          <span className="monogram">LG</span>
-          <span><strong>LEGACY GOODS</strong><small>EST. 2026</small></span>
-        </a>
-        <nav className="hidden items-center gap-8 text-xs font-semibold uppercase tracking-[0.2em] text-[#d7cbb8] md:flex" aria-label="Main navigation">
-          <a href="#shop" className="nav-link">Shop</a>
-          <a href="#workshop" className="nav-link">Workshop</a>
-          <a href="#about" className="nav-link">About</a>
-          <a href="/login" className="nav-link">Account</a>
-        </nav>
-        <div className="header-actions">
-          <a href="https://instagram.com/locacollection1" target="_blank" rel="noreferrer" className="hidden text-xs text-[#c5a059] transition hover:text-[#f4f1ea] sm:block">@locacollection1</a>
-          <AuthControls />
-          <button type="button" onClick={() => setCartOpen(true)} className="cart-button" aria-label={`Open shopping bag, ${cartCount} items`}>Bag <span>{cartCount}</span></button>
-        </div>
-      </header>
+      <Navbar cartCount={cartCount} onBagClick={() => setCartOpen(true)} onPreviewNotice={() => setToast('Catalogue Preview Mode — Admins cannot place orders.')} />
 
       <section id="top" className="hero-section">
         <div className="hero-copy">
@@ -154,6 +153,7 @@ export default function Home() {
       <section id="workshop" className="workshop-section"><div className="workshop-mark">LG</div><div><p className="eyebrow text-[#c5a059]">The workshop</p><h2>Made slowly.<br /><em>Worn often.</em></h2></div><p>From the looms of Faisalabad to the leather benches of Lahore, every Legacy Goods piece carries a little of home in it.</p></section>
       <section id="about" className="about-section"><p className="eyebrow text-[#7c6232]">Our point of view</p><h2>Good things take<br /><em>their own time.</em></h2><p>We make fewer things, better. Thoughtful goods for daily rituals, designed in Pakistan and made to cross generations.</p></section>
       <footer className="site-footer"><span className="monogram small">LG</span><span>LEGACY GOODS / EST. 2026</span><a href="https://instagram.com/locacollection1" target="_blank" rel="noreferrer">@locacollection1</a></footer>
+      {toast && <div className="preview-toast" role="status">{toast}</div>}
       {cartOpen && <CartDrawer items={cart} total={cartTotal} onClose={() => setCartOpen(false)} onChangeQuantity={updateQuantity} onRemove={(productId) => updateQuantity(productId, 0)} onCheckout={handleCheckout} />}
       {checkoutOpen && cart.length > 0 && <CheckoutModal items={cart} totalAmount={cartTotal} onClose={() => setCheckoutOpen(false)} />}
     </main>

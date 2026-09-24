@@ -5,6 +5,11 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 
+const getNextPath = () => {
+  const next = new URLSearchParams(window.location.search).get('next');
+  return next?.startsWith('/') ? next : '/';
+};
+
 export default function LoginPage() {
   const router = useRouter();
   const { user, loading, signIn, signUp } = useAuth();
@@ -17,7 +22,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (!loading && user) {
-      router.replace('/');
+      router.replace(getNextPath());
     }
   }, [loading, router, user]);
 
@@ -30,13 +35,13 @@ export default function LoginPage() {
     try {
       if (mode === 'signIn') {
         await signIn(email, password);
-        router.replace('/');
+        router.replace(getNextPath());
       } else {
         const result = await signUp(email, password);
         if (result.needsEmailConfirmation) {
           setMessage('Check your email to confirm your account, then sign in.');
         } else {
-          router.replace('/');
+          router.replace(getNextPath());
         }
       }
     } catch (authError) {

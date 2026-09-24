@@ -25,6 +25,7 @@ const paymentMethods = ['COD', 'EasyPaisa', 'JazzCash', 'BankTransfer'] as const
 type PaymentMethod = (typeof paymentMethods)[number];
 
 interface OrderPayload {
+  user_id: unknown;
   customer_name: unknown;
   customer_email: unknown;
   customer_phone: unknown;
@@ -56,7 +57,19 @@ app.get('/api/products', async (req: Request, res: Response) => {
 
 // Create a new order
 app.post('/api/orders', async (req: Request, res: Response) => {
+  const authorization = req.headers.authorization;
+  const accessToken = authorization?.startsWith('Bearer ') ? authorization.slice(7) : null;
+  if (!accessToken) {
+    return res.status(401).json({ error: 'Authentication required' });
+  }
+
+  const { data: authData, error: authError } = await supabase.auth.getUser(accessToken);
+  if (authError || !authData.user) {
+    return res.status(401).json({ error: 'Invalid session' });
+  }
+
   const {
+    user_id,
     customer_name,
     customer_email,
     customer_phone,
@@ -67,6 +80,7 @@ app.post('/api/orders', async (req: Request, res: Response) => {
   } = req.body as OrderPayload;
 
   if (
+    !isNonEmptyString(user_id) ||
     !isNonEmptyString(customer_name) ||
     !isNonEmptyString(customer_email) ||
     !isNonEmptyString(customer_phone) ||
@@ -80,8 +94,21 @@ app.post('/api/orders', async (req: Request, res: Response) => {
     return res.status(400).json({ error: 'Invalid order details' });
   }
 
+  if (user_id !== authData.user.id || customer_email.trim().toLowerCase() !== (authData.user.email ?? '').toLowerCase()) {
+    return res.status(403).json({ error: 'Order identity does not match the signed-in user' });
+  }
+
+  const { data: profile, error: profileError } = await supabase.from('profiles').select('role').eq('id', authData.user.id).maybeSingle();
+  if (profileError) {
+    return res.status(500).json({ error: profileError.message });
+  }
+  if (profile?.role === 'admin') {
+    return res.status(403).json({ error: 'Admins can browse the catalogue but cannot place orders' });
+  }
+
   const { data, error } = await supabase.from('orders').insert([
     {
+      user_id,
       customer_name: customer_name.trim(),
       customer_email: customer_email.trim(),
       customer_phone: customer_phone.trim(),
