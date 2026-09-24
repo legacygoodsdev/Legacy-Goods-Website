@@ -8,36 +8,43 @@ import { supabase } from '@/lib/supabaseClient';
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [needsLogin, setNeedsLogin] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
     async function checkAdminUser() {
-      const { data: { session } } = await supabase.auth.getSession();
+      try {
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
 
-      if (!session) {
-        // Redirect to login if not authenticated
-        router.push('/');
-        return;
-      }
+        if (sessionError || !session) {
+          setNeedsLogin(true);
+          setLoading(false);
+          return;
+        }
 
-      // Check if user has admin role in profiles table
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', session.user.id)
-        .single();
+        // Check if user has admin role in profiles table
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', session.user.id)
+          .single();
 
-      if (profile?.role === 'admin') {
+        if (profileError || profile?.role !== 'admin') {
+          setIsAdmin(false);
+          setLoading(false);
+          return;
+        }
+
         setIsAdmin(true);
-      } else {
-        alert('Access denied. Administrator privileges required.');
-        router.push('/');
+      } catch (err) {
+        console.error('Auth verification error:', err);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     }
 
     checkAdminUser();
-  }, [router]);
+  }, []);
 
   if (loading) {
     return (
@@ -47,7 +54,22 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     );
   }
 
-  if (!isAdmin) return null;
+  if (needsLogin || !isAdmin) {
+    return (
+      <div className="flex h-screen flex-col items-center justify-center bg-slate-900 text-white p-6 text-center">
+        <h1 className="text-2xl font-bold text-amber-500 mb-2">Restricted Access</h1>
+        <p className="text-slate-400 mb-6">You must be logged in with an administrator account to view this panel.</p>
+        <div className="space-x-4">
+          <a 
+            href="/Legacy-Goods-Website/" 
+            className="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 rounded-lg text-sm font-medium transition"
+          >
+            Return to Home
+          </a>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen bg-slate-900 text-slate-100">
