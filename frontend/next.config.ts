@@ -1,10 +1,7 @@
-import type { NextConfig } from "next";
-
-const nextConfig: NextConfig = {
-  output: "export",
-  trailingSlash: true,
-  basePath: process.env.NEXT_PUBLIC_BASE_PATH || "",
-  assetPrefix: process.env.NEXT_PUBLIC_BASE_PATH ? `${process.env.NEXT_PUBLIC_BASE_PATH}/` : undefined,
+/** @type {import('next').Next.config} */
+const nextConfig = {
+  output: 'export',
+  basePath: '/Legacy-Goods-Website',
   images: {
     unoptimized: true,
   },
