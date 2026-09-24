@@ -1,4 +1,6 @@
-﻿export const metadata = {
+﻿import './globals.css';
+
+export const metadata = {
   title: 'Legacy Goods',
   description: 'Industrial-Standard E-Commerce Platform',
 };
@@ -10,7 +12,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body className="bg-slate-950 text-slate-100 antialiased min-h-screen">
+        {children}
+      </body>
     </html>
   );
 }
