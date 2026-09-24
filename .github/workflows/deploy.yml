@@ -19,6 +19,9 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./frontend
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -29,27 +32,17 @@ jobs:
           node-version: "20"
 
       - name: Install dependencies
-        run: |
-          if [ -d "frontend" ]; then
-            cd frontend && npm ci
-          else
-            npm ci
-          fi
+        run: npm install
 
       - name: Build static site
         env:
           NEXT_PUBLIC_BASE_PATH: "/Legacy-Goods-Website"
-        run: |
-          if [ -d "frontend" ]; then
-            cd frontend && npm run build
-          else
-            npm run build
-          fi
+        run: npm run build
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: './frontend/out'
+          path: 'frontend/out'
 
       - name: Deploy to GitHub Pages
         id: deployment
