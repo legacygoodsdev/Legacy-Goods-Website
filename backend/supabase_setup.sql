@@ -23,7 +23,7 @@ alter table public.profiles add column if not exists email text;
 
 alter table public.profiles enable row level security;
 
-create or replace function public.resequence_admin_identifiers()
+create or replace function public.perform_admin_resequence()
 returns trigger
 language plpgsql
 security definer
@@ -42,7 +42,7 @@ begin
     where role = 'admin'
   )
   update public.profiles as profile
-  set admin_seq_id = 'ADMIN_LOCA' || ranked_admins.sequence_number
+  set admin_seq_id = 'ADMIN_LEGACY' || ranked_admins.sequence_number
   from ranked_admins
   where profile.id = ranked_admins.id;
 
@@ -77,7 +77,7 @@ for each row execute procedure public.handle_new_user();
 drop trigger if exists profiles_resequence_admins on public.profiles;
 create trigger profiles_resequence_admins
 after insert or update of role or delete on public.profiles
-for each row execute procedure public.resequence_admin_identifiers();
+for each row execute procedure public.perform_admin_resequence();
 
 create or replace function public.is_admin()
 returns boolean
