@@ -29,27 +29,17 @@ jobs:
           node-version: "20"
 
       - name: Install dependencies
-        run: |
-          if [ -f "package.json" ]; then
-            npm install
-          else
-            cd frontend && npm install
-          fi
+        run: cd frontend && npm install
 
       - name: Build static site
         env:
           NEXT_PUBLIC_BASE_PATH: "/Legacy-Goods-Website"
-        run: |
-          if [ -f "package.json" ]; then
-            npm run build
-          else
-            cd frontend && npm run build
-          fi
+        run: cd frontend && npm run build
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: 'frontend/out'
+          path: './frontend/out'
 
       - name: Deploy to GitHub Pages
         id: deployment
