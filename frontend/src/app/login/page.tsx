@@ -1,73 +1,70 @@
-﻿'use client';
+'use client';
 
-import { useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabaseClient';
+import { useAuth } from '@/context/AuthContext';
+
+const getNextPath = () => {
+  const next = new URLSearchParams(window.location.search).get('next');
+  return next?.startsWith('/') ? next : '/';
+};
 
 export default function LoginPage() {
+  const router = useRouter();
+  const { user, loading, signIn, signUp } = useAuth();
+  const [mode, setMode] = useState<'signIn' | 'signUp'>('signIn');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [errorMsg, setErrorMsg] = useState('');
-  const [loading, setLoading] = useState(false);
-  const router = useRouter();
+  const [submitting, setSubmitting] = useState(false);
+  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setErrorMsg('');
+  useEffect(() => {
+    if (!loading && user) router.replace(getNextPath());
+  }, [loading, router, user]);
 
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) {
-      setErrorMsg(error.message);
-      setLoading(false);
-      return;
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setSubmitting(true);
+    setMessage('');
+    setError('');
+    try {
+      if (mode === 'signIn') {
+        await signIn(email, password);
+        router.replace(getNextPath());
+      } else {
+        const result = await signUp(email, password);
+        if (result.needsEmailConfirmation) setMessage('Check your email to confirm your account, then sign in.');
+        else router.replace(getNextPath());
+      }
+    } catch (authError) {
+      setError(authError instanceof Error ? authError.message : 'Authentication failed.');
+    } finally {
+      setSubmitting(false);
     }
-
-    router.push('/admin');
   };
 
   return (
-    <div className="flex h-screen flex-col items-center justify-center bg-slate-950 text-white p-6">
-      <div className="max-w-md w-full bg-slate-900 border border-slate-800 p-8 rounded-xl shadow-xl">
-        <h1 className="text-2xl font-bold text-amber-500 mb-2 text-center">Sign In</h1>
-        <p className="text-slate-400 text-sm mb-6 text-center">Access your Legacy Goods account.</p>
-
-        {errorMsg && (
-          <div className="mb-4 p-3 bg-red-950/50 border border-red-800 text-red-200 text-sm rounded-lg">
-            {errorMsg}
-          </div>
-        )}
-
-        <form onSubmit={handleLogin} className="space-y-4">
-          <div>
-            <label className="block text-xs font-medium text-slate-400 mb-1">Email Address</label>
-            <input 
-              type="email" 
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="w-full px-4 py-2 bg-slate-950 border border-slate-800 rounded-lg text-white focus:outline-none focus:border-amber-500"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-slate-400 mb-1">Password</label>
-            <input 
-              type="password" 
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="w-full px-4 py-2 bg-slate-950 border border-slate-800 rounded-lg text-white focus:outline-none focus:border-amber-500"
-            />
-          </div>
-          <button 
-            type="submit"
-            disabled={loading}
-            className="w-full py-2.5 bg-amber-600 hover:bg-amber-500 text-black font-semibold rounded-lg transition"
-          >
-            {loading ? 'Signing in...' : 'Sign In'}
-          </button>
+    <main className="auth-page">
+      <section className="auth-card">
+        <Link href="/" className="auth-back">← Back to Legacy Goods</Link>
+        <div className="auth-monogram">LG</div>
+        <p className="eyebrow text-[#c5a059]">Your place in the story</p>
+        <h1 className="auth-title">{mode === 'signIn' ? 'Welcome back' : 'Create your account'}</h1>
+        <p className="auth-subtitle">{mode === 'signIn' ? 'Sign in to continue to checkout.' : 'Create an account to place orders.'}</p>
+        <div className="auth-toggle">
+          <button type="button" onClick={() => setMode('signIn')} className={mode === 'signIn' ? 'active' : ''}>Sign In</button>
+          <button type="button" onClick={() => setMode('signUp')} className={mode === 'signUp' ? 'active' : ''}>Sign Up</button>
+        </div>
+        <form onSubmit={handleSubmit} className="auth-form">
+          <label>Email<input type="email" required autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} className="auth-input" /></label>
+          <label>Password<input type="password" required minLength={6} autoComplete={mode === 'signIn' ? 'current-password' : 'new-password'} value={password} onChange={(event) => setPassword(event.target.value)} className="auth-input" /></label>
+          {error && <p className="auth-error">{error}</p>}
+          {message && <p className="auth-message">{message}</p>}
+          <button type="submit" disabled={submitting} className="auth-submit">{submitting ? 'Please wait...' : mode === 'signIn' ? 'Sign In' : 'Create Account'}</button>
         </form>
-      </div>
-    </div>
+      </section>
+    </main>
   );
 }

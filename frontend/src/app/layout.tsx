@@ -1,19 +1,21 @@
-﻿import './globals.css';
+import type { Metadata } from 'next';
+import { Geist, Geist_Mono } from 'next/font/google';
+import './globals.css';
+import { AuthProvider } from '@/context/AuthContext';
 
-export const metadata = {
-  title: 'Legacy Goods',
-  description: 'Industrial-Standard E-Commerce Platform',
+const geistSans = Geist({ variable: '--font-geist-sans', subsets: ['latin'] });
+const geistMono = Geist_Mono({ variable: '--font-geist-mono', subsets: ['latin'] });
+
+export const metadata: Metadata = {
+  title: 'Legacy Goods | Designed & Crafted in Pakistan',
+  description: 'Artisanal clothing and carry goods, designed and crafted in Pakistan.',
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en">
-      <body className="bg-slate-950 text-slate-100 antialiased min-h-screen">
-        {children}
+    <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
+      <body className="min-h-full flex flex-col">
+        <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
   );

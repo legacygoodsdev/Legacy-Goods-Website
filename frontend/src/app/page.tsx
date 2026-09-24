@@ -1,93 +1,130 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Header from '@/components/Header';
-import { supabase } from '@/lib/supabaseClient';
+import { fetchProducts } from '@/lib/api';
+import type { CartItem, Product, ProductCategory } from '@/types';
+import CheckoutModal from '@/components/CheckoutModal';
+import CartDrawer from '@/components/CartDrawer';
+import Navbar from '@/components/Navbar';
+import { useAuth } from '@/context/AuthContext';
 
-interface Product {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  stock: number;
-}
+const categories: Array<'All' | ProductCategory> = ['All', 'Apparel', 'Leather Goods', 'Accessories'];
+const fallbackProducts: Product[] = [
+  { id: 'heritage-denim-jacket', title: 'Heritage Denim Jacket', description: 'Heavyweight cotton denim, cut and finished in Lahore for a lifetime of wear.', price: 12500, image_url: null, stock: 8, created_at: '2026-01-01' },
+  { id: 'leather-cardholder', title: 'Handcrafted Leather Cardholder', description: 'Full-grain leather, burnished edges and a quiet patina that gets better with time.', price: 3800, image_url: null, stock: 24, created_at: '2026-01-01' },
+  { id: 'pakistani-cotton-shirt', title: 'Bespoke Pakistani Cotton Shirt', description: 'Breathable local cotton with a relaxed silhouette made for warm days and long nights.', price: 7200, image_url: null, stock: 12, created_at: '2026-01-01' },
+];
 
-export default function Storefront() {
+const categoryFor = (product: Product): ProductCategory => {
+  const name = `${product.title} ${product.description ?? ''}`.toLowerCase();
+  if (name.includes('leather') || name.includes('cardholder')) return 'Leather Goods';
+  if (name.includes('shirt') || name.includes('jacket') || name.includes('cotton') || name.includes('denim')) return 'Apparel';
+  return 'Accessories';
+};
+
+const formatPrice = (amount: number) => `PKR ${amount.toLocaleString('en-PK')}`;
+
+export default function Home() {
   const router = useRouter();
+  const { user, isAdmin, profileLoading } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeCategory, setActiveCategory] = useState<(typeof categories)[number]>('All');
+  const [search, setSearch] = useState('');
+  const [cart, setCart] = useState<CartItem[]>([]);
+  const [cartOpen, setCartOpen] = useState(false);
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [toast, setToast] = useState('');
 
   useEffect(() => {
-    const query = new URLSearchParams(window.location.search);
-    const p = query.get('p');
-    if (p) {
-      router.replace(p);
-      return;
-    }
-
-    async function fetchProducts() {
+    async function loadProducts() {
       try {
-        const { data, error } = await supabase.from('products').select('*');
-        if (data && !error) {
-          setProducts(data);
-        }
-      } catch (err) {
-        console.error('Error fetching products:', err);
+        const data = await fetchProducts();
+        setProducts(data.length > 0 ? data : fallbackProducts);
+      } catch {
+        setProducts(fallbackProducts);
       } finally {
         setLoading(false);
       }
     }
+    loadProducts();
+  }, []);
 
-    fetchProducts();
-  }, [router]);
+  useEffect(() => {
+    if (!toast) return;
+    const timeout = window.setTimeout(() => setToast(''), 3500);
+    return () => window.clearTimeout(timeout);
+  }, [toast]);
+
+  const filteredProducts = products.filter((product) => {
+    const category = categoryFor(product);
+    const matchesCategory = activeCategory === 'All' || category === activeCategory;
+    const searchText = `${product.title} ${product.description ?? ''}`.toLowerCase();
+    return matchesCategory && searchText.includes(search.toLowerCase());
+  });
+  const cartTotal = cart.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
+  const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+
+  const addToCart = (product: Product) => {
+    if (user && profileLoading) {
+      setToast('Checking account access...');
+      return;
+    }
+    if (isAdmin) {
+      setToast('Catalogue Preview Mode — Admins cannot place orders.');
+      return;
+    }
+    if (!user) {
+      router.push('/login');
+      return;
+    }
+    setCart((currentCart) => {
+      const existing = currentCart.find((item) => item.product.id === product.id);
+      if (existing) return currentCart.map((item) => item.product.id === product.id ? { ...item, quantity: item.quantity + 1 } : item);
+      return [...currentCart, { product, category: categoryFor(product), quantity: 1 }];
+    });
+    setCartOpen(true);
+  };
+
+  const updateQuantity = (productId: string, quantity: number) => {
+    if (quantity <= 0) {
+      setCart((currentCart) => currentCart.filter((item) => item.product.id !== productId));
+      return;
+    }
+    setCart((currentCart) => currentCart.map((item) => item.product.id === productId ? { ...item, quantity } : item));
+  };
+
+  const handleCheckout = () => {
+    if (user && profileLoading) {
+      setToast('Checking account access...');
+      return;
+    }
+    if (isAdmin) {
+      setToast('Catalogue Preview Mode — Admins cannot place orders.');
+      return;
+    }
+    if (!user) {
+      router.push('/login');
+      return;
+    }
+    if (cart.length > 0) {
+      setCartOpen(false);
+      setCheckoutOpen(true);
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-between">
-      <Header />
-
-      <main className="flex-1 max-w-7xl w-full mx-auto p-8">
-        <div className="mb-12 text-center py-12 bg-gradient-to-b from-slate-900 to-slate-950 border border-slate-800 rounded-2xl shadow-xl">
-          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-white mb-4">
-            Timeless Craftsmanship. <span className="text-amber-500">Modern Standard.</span>
-          </h1>
-          <p className="text-slate-400 max-w-2xl mx-auto text-base md:text-lg">
-            Explore our curated catalog of industrial-grade products built to last. Secure transactions, verified quality.
-          </p>
-        </div>
-
-        <h2 className="text-2xl font-bold tracking-wide text-slate-200 mb-6 border-b border-slate-800 pb-3">
-          Available Inventory
-        </h2>
-
-        {loading ? (
-          <div className="text-center py-20 text-slate-400 animate-pulse">Loading catalog...</div>
-        ) : products.length === 0 ? (
-          <div className="text-center py-20 bg-slate-900/40 border border-slate-800 rounded-xl">
-            <p className="text-slate-400">No products currently listed in the catalog.</p>
-            <p className="text-xs text-slate-500 mt-2">Admins can add products via the Admin Suite.</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {products.map((product) => (
-              <div key={product.id} className="bg-slate-900 border border-slate-800 rounded-xl p-6 flex flex-col justify-between hover:border-slate-700 transition">
-                <div>
-                  <h3 className="text-lg font-semibold text-white mb-2">{product.name}</h3>
-                  <p className="text-slate-400 text-sm mb-4 line-clamp-3">{product.description}</p>
-                </div>
-                <div className="flex items-center justify-between mt-4 pt-4 border-t border-slate-800">
-                  <span className="text-xl font-bold text-amber-500"></span>
-                  <span className="text-xs text-slate-500">Stock: {product.stock}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </main>
-
-      <footer className="border-t border-slate-800 py-6 text-center text-xs text-slate-500">
-        &copy; 2026 Legacy Goods E-Commerce Platform. All rights reserved.
-      </footer>
-    </div>
+    <main className="site-shell min-h-screen">
+      <Navbar cartCount={cartCount} onBagClick={() => setCartOpen(true)} onPreviewNotice={() => setToast('Catalogue Preview Mode — Admins cannot place orders.')} />
+      <section id="top" className="hero-section"><div className="hero-copy"><p className="eyebrow text-[#c5a059]">Designed &amp; Crafted in Pakistan</p><h1>Objects with a past.<br /><em>Made for yours.</em></h1><p className="hero-intro">A considered collection of clothing and carry goods, shaped by local hands and made to move with you.</p><a href="#shop" className="bronze-button">Explore the collection <span>↓</span></a></div><div className="hero-stamp" aria-hidden="true"><span>LG</span><small>HANDMADE<br />IN PAKISTAN</small></div><div className="flag-detail" aria-hidden="true" /></section>
+      <section id="shop" className="shop-section"><div className="section-heading"><div><p className="eyebrow text-[#7c6232]">The first edition</p><h2>Made to be kept.</h2></div><p className="max-w-sm text-sm leading-6 text-[#756b5e]">Small-batch pieces with honest materials, useful forms, and the marks of the hands that made them.</p></div><div className="filter-bar"><div className="category-tabs" role="tablist" aria-label="Product categories">{categories.map((category) => <button key={category} type="button" onClick={() => setActiveCategory(category)} className={activeCategory === category ? 'category-tab active' : 'category-tab'}>{category}</button>)}</div><label className="search-field"><span>Search</span><input type="search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Find a piece" /></label></div>{loading ? <div className="catalog-message">Gathering the collection...</div> : filteredProducts.length === 0 ? <div className="catalog-message">No pieces match that search.</div> : <div className="product-grid">{filteredProducts.map((product, index) => { const category = categoryFor(product); return <article key={product.id} className="product-card" style={{ animationDelay: `${index * 80}ms` }}><div className={`product-art product-art-${category.toLowerCase().replace(' ', '-')}`}>{product.image_url && <div className="product-photo" style={{ backgroundImage: `url(${product.image_url})` }} />}<span>{product.title.slice(0, 2).toUpperCase()}</span><small>{category}</small></div><div className="product-info"><p className="eyebrow text-[#7c6232]">{category}</p><h3>{product.title}</h3><p className="product-description">{product.description}</p><div className="product-footer"><strong>{formatPrice(product.price)}</strong><button type="button" onClick={() => addToCart(product)} className="text-button">Buy now <span>↗</span></button></div></div></article>; })}</div>}</section>
+      <section id="workshop" className="workshop-section"><div className="workshop-mark">LG</div><div><p className="eyebrow text-[#c5a059]">The workshop</p><h2>Made slowly.<br /><em>Worn often.</em></h2></div><p>From the looms of Faisalabad to the leather benches of Lahore, every Legacy Goods piece carries a little of home in it.</p></section>
+      <section id="about" className="about-section"><p className="eyebrow text-[#7c6232]">Our point of view</p><h2>Good things take<br /><em>their own time.</em></h2><p>We make fewer things, better. Thoughtful goods for daily rituals, designed in Pakistan and made to cross generations.</p></section>
+      <footer className="site-footer"><span className="monogram small">LG</span><span>LEGACY GOODS / EST. 2026</span><a href="https://instagram.com/locacollection1" target="_blank" rel="noreferrer">@locacollection1</a></footer>
+      {toast && <div className="preview-toast" role="status">{toast}</div>}
+      {cartOpen && <CartDrawer items={cart} total={cartTotal} onClose={() => setCartOpen(false)} onChangeQuantity={updateQuantity} onRemove={(productId) => updateQuantity(productId, 0)} onCheckout={handleCheckout} />}
+      {checkoutOpen && cart.length > 0 && <CheckoutModal items={cart} totalAmount={cartTotal} onClose={() => setCheckoutOpen(false)} />}
+    </main>
   );
 }
