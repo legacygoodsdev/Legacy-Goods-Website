@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import AccountDrawer from '@/components/AccountDrawer';
 import { useAuth } from '@/context/AuthContext';
+import { brand } from '@/lib/brand';
 
 interface Props {
   cartCount: number;
@@ -20,7 +21,7 @@ export default function Navbar({ cartCount, onBagClick, onPreviewNotice }: Props
       <header className="site-header">
         <Link href="/" className="brand-lockup" aria-label="Legacy Goods home">
           <span className="monogram">LG</span>
-          <span><strong>LEGACY GOODS</strong><small>EST. 2026</small></span>
+          <span><strong>{brand.name}</strong><small>{brand.established}</small></span>
         </Link>
         <nav className="hidden items-center gap-8 text-xs font-semibold uppercase tracking-[0.2em] text-[#d7cbb8] md:flex" aria-label="Main navigation">
           <Link href="/#shop" className="nav-link">Shop</Link>
