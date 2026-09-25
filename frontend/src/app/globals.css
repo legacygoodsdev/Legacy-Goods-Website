@@ -1,9 +1,9 @@
 @import "tailwindcss";
 
 :root {
-  --charcoal: #211f1c;
-  --charcoal-deep: #171614;
-  --charcoal-soft: #302c27;
+  --charcoal: #1c1a18;
+  --charcoal-deep: #121110;
+  --charcoal-soft: #282522;
   --bronze: #c5a059;
   --bronze-light: #e0c887;
   --ink: #25221e;
@@ -122,8 +122,15 @@ button { cursor: pointer; }
 .product-art-footwear { background: linear-gradient(145deg, #895f3b, #392419 58%, #b18854); }
 .product-art-accessories { background: linear-gradient(145deg, #5d5b52, #20211d 60%, #9a875b); }
 .product-photo { background-position: center; background-size: cover; inset: 0; opacity: .82; position: absolute; }
+.product-art { aspect-ratio: 4 / 5; background: #282522; border: 1px solid rgba(197,160,89,.22); height: auto; }
+.product-art::before { background: linear-gradient(180deg, rgba(18,17,16,.03) 30%, rgba(18,17,16,.74) 100%); content: ''; inset: 0; position: absolute; z-index: 1; }
+.product-art .product-photo { opacity: 1; transform: scale(1.01); transition: transform .8s cubic-bezier(.16,1,.3,1), filter .45s ease; }
+.product-card:hover .product-art .product-photo { filter: brightness(.86); transform: scale(1.07); }
+.product-art > span.product-badge { align-items: center; background: rgba(244,241,234,.92); border: 0; color: var(--ink); display: inline-flex; font-family: var(--font-dm-sans), sans-serif; font-size: .58rem; font-weight: 700; inset: 1rem auto auto 1rem; letter-spacing: .14em; margin: 0; padding: .52rem .68rem; text-transform: uppercase; z-index: 3; }
+.product-art > small { z-index: 3; }
 .product-info { padding: 1.4rem; }
 .product-info h3 { font-family: Georgia, 'Times New Roman', serif; font-size: 1.7rem; font-weight: 400; line-height: 1.05; margin: .6rem 0; }
+.product-info h3 { font-family: var(--font-playfair), Georgia, serif; letter-spacing: -.02em; }
 .product-description { color: var(--muted); font-size: .82rem; line-height: 1.6; min-height: 2.65rem; }
 .product-footer { align-items: center; border-top: 1px solid rgba(117,107,94,.22); display: flex; justify-content: space-between; margin-top: 1.25rem; padding-top: 1rem; }
 .product-footer strong { font-size: .9rem; letter-spacing: .04em; }
@@ -230,6 +237,15 @@ button { cursor: pointer; }
 @media (max-width: 850px) { .category-showcase { grid-template-columns: repeat(2, 1fr); } .category-intro { grid-column: span 2; } .editorial-section { grid-template-columns: 1fr; } }
 @media (max-width: 620px) { .announcement-bar span { display: block; margin: .25rem 0 0; } .site-header { align-items: flex-start; flex-wrap: wrap; } .header-actions { margin-left: auto; } .hero-section { min-height: 38rem; padding-top: 5rem; } .hero-stamp { bottom: 5%; height: 10rem; right: -2rem; width: 10rem; } .hero-stamp span { font-size: 3rem; } .section-heading, .filter-bar { align-items: flex-start; flex-direction: column; } .filter-bar { gap: 1rem; } .search-field { max-width: none; width: 100%; } .search-field input { width: 100%; } .product-grid { grid-template-columns: 1fr; } .product-art { height: 20rem; } .category-showcase { grid-template-columns: 1fr; } .category-intro { grid-column: auto; } .service-ribbon { grid-template-columns: 1fr; } .workshop-section { grid-template-columns: 1fr; } .workshop-section p:last-child { grid-column: auto; } .workshop-mark { height: 6rem; width: 6rem; } .site-footer { grid-template-columns: 1fr; } }
 @media (max-width: 780px) { .admin-layout { grid-template-columns: 1fr; } .admin-sidebar { padding-bottom: 2rem; } .admin-tabs { margin-top: 2rem; } .directory-row { grid-template-columns: 2.4rem minmax(10rem, 1fr) auto; } .directory-row > span { display: none; } .admin-metrics { grid-template-columns: repeat(2, 1fr); } .catalogue-grid { grid-template-columns: 1fr; } }
+
+.shop-section { padding-bottom: clamp(6rem, 12vw, 11rem); padding-top: clamp(6rem, 12vw, 11rem); }
+.section-heading { margin-bottom: 4.5rem; }
+.product-grid { gap: 2.25rem 1.1rem; }
+.product-card { border-color: rgba(18,17,16,.12); box-shadow: 0 18px 50px rgba(18,17,16,.05); transition: box-shadow .4s ease, transform .4s cubic-bezier(.16,1,.3,1); }
+.product-card:hover { box-shadow: 0 28px 70px rgba(18,17,16,.12); transform: translateY(-5px); }
+.product-footer { align-items: baseline; }
+.product-footer strong { color: var(--ink); font-family: var(--font-playfair), Georgia, serif; font-size: 1.05rem; }
+.product-footer .text-button { border-bottom: 1px solid rgba(1,65,28,.35); padding-bottom: .2rem; }
 
 /* LOCA reference assets and scoped Atelier surface system. */
 .hero-portrait { background: linear-gradient(140deg, rgba(17,15,12,.18), rgba(17,15,12,.72)), url('/Legacy-Goods-Website/legacy-images/hero-pakistani-fashion.jpg') center 28% / cover; }

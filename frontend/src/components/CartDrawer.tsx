@@ -12,6 +12,12 @@ interface Props {
 }
 
 const formatPrice = (amount: number) => `PKR ${amount.toLocaleString('en-PK')}`;
+const categoryImage = {
+  Women: '/Legacy-Goods-Website/legacy-images/women-lawn.jpg',
+  Men: '/Legacy-Goods-Website/legacy-images/men-kurta.jpg',
+  Footwear: '/Legacy-Goods-Website/legacy-images/khussa.jpg',
+  Accessories: '/Legacy-Goods-Website/legacy-images/accessories.jpg',
+};
 
 export default function CartDrawer({ items, total, onClose, onChangeQuantity, onRemove, onCheckout }: Props) {
   return (
@@ -39,8 +45,7 @@ export default function CartDrawer({ items, total, onClose, onChangeQuantity, on
               {items.map(({ product, category, quantity }) => (
                 <article key={product.id} className="flex gap-4 border-b border-[#c5a059]/30 pb-5">
                   <div className={`product-art product-art-${category.toLowerCase().replace(' ', '-')} h-24 w-20 shrink-0`}>
-                    {product.image_url && <div className="product-photo" style={{ backgroundImage: `url(${product.image_url})` }} />}
-                    <span>{product.title.slice(0, 2).toUpperCase()}</span>
+                    <div className="product-photo" style={{ backgroundImage: `url(${product.image_url || categoryImage[category]})` }} />
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="eyebrow text-[#7c6232]">{category}</p>
