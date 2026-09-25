@@ -9,17 +9,21 @@ import CartDrawer from '@/components/CartDrawer';
 import Navbar from '@/components/Navbar';
 import { useAuth } from '@/context/AuthContext';
 
-const categories: Array<'All' | ProductCategory> = ['All', 'Apparel', 'Leather Goods', 'Accessories'];
+const categories: Array<'All' | ProductCategory> = ['All', 'Women', 'Men', 'Footwear', 'Accessories'];
 const fallbackProducts: Product[] = [
-  { id: 'heritage-denim-jacket', title: 'Heritage Denim Jacket', description: 'Heavyweight cotton denim, cut and finished in Lahore for a lifetime of wear.', price: 12500, image_url: null, stock: 8, created_at: '2026-01-01' },
-  { id: 'leather-cardholder', title: 'Handcrafted Leather Cardholder', description: 'Full-grain leather, burnished edges and a quiet patina that gets better with time.', price: 3800, image_url: null, stock: 24, created_at: '2026-01-01' },
-  { id: 'pakistani-cotton-shirt', title: 'Bespoke Pakistani Cotton Shirt', description: 'Breathable local cotton with a relaxed silhouette made for warm days and long nights.', price: 7200, image_url: null, stock: 12, created_at: '2026-01-01' },
+  { id: 'meher-festive-suit', title: 'Meher Festive Embroidered Suit', description: 'A softly structured festive edit with hand-finished detail and a modern Pakistani silhouette.', price: 11990, image_url: null, stock: 8, created_at: '2026-01-01' },
+  { id: 'rayan-kurta-waistcoat', title: 'Rayan Kurta Waistcoat Set', description: 'A crisp, considered set for celebrations, cut in breathable local cotton.', price: 8990, image_url: null, stock: 10, created_at: '2026-01-01' },
+  { id: 'naveed-embroidered-waistcoat', title: 'Naveed Embroidered Waistcoat', description: 'Quiet texture, warm neutral tones and a finish made for the occasion.', price: 14990, image_url: null, stock: 6, created_at: '2026-01-01' },
+  { id: 'noor-mint-lawn-suit', title: 'Noor Mint Lawn 3-Piece', description: 'Lightweight lawn in a fresh mint palette, made for long summer afternoons.', price: 6490, image_url: null, stock: 15, created_at: '2026-01-01' },
+  { id: 'gul-teal-khussa', title: 'Gul Teal Embroidered Khussa', description: 'A hand-finished classic with a softly pointed toe and a little colour.', price: 4490, image_url: null, stock: 12, created_at: '2026-01-01' },
+  { id: 'mina-festive-clutch', title: 'Mina Festive Clutch', description: 'A small evening companion with a tactile finish and just enough shine.', price: 5990, image_url: null, stock: 9, created_at: '2026-01-01' },
 ];
 
 const categoryFor = (product: Product): ProductCategory => {
   const name = `${product.title} ${product.description ?? ''}`.toLowerCase();
-  if (name.includes('leather') || name.includes('cardholder')) return 'Leather Goods';
-  if (name.includes('shirt') || name.includes('jacket') || name.includes('cotton') || name.includes('denim')) return 'Apparel';
+  if (name.includes('khussa') || name.includes('chappal') || name.includes('shoe')) return 'Footwear';
+  if (name.includes('waistcoat') || name.includes('kurta') || name.includes('men')) return 'Men';
+  if (name.includes('suit') || name.includes('lawn') || name.includes('dupatta') || name.includes('women')) return 'Women';
   return 'Accessories';
 };
 

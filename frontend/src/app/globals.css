@@ -104,8 +104,9 @@ button { cursor: pointer; }
 .product-art::after { background-image: repeating-linear-gradient(120deg, transparent 0 12px, rgba(255,255,255,.1) 13px, transparent 14px); content: ''; inset: 0; opacity: .6; position: absolute; }
 .product-art > span { color: rgba(244,241,234,.9); font-family: Georgia, 'Times New Roman', serif; font-size: clamp(4rem, 9vw, 8rem); letter-spacing: -.15em; margin-right: .7rem; position: relative; z-index: 1; }
 .product-art small { bottom: 1rem; color: rgba(244,241,234,.8); font-size: .58rem; left: 1rem; letter-spacing: .2em; position: absolute; text-transform: uppercase; z-index: 1; }
-.product-art-apparel { background: linear-gradient(145deg, #35413e, #111a18 52%, #926f3f); }
-.product-art-leather-goods { background: linear-gradient(145deg, #895f3b, #392419 58%, #b18854); }
+.product-art-women { background: linear-gradient(145deg, #776b68, #282322 58%, #b88e72); }
+.product-art-men { background: linear-gradient(145deg, #35413e, #111a18 52%, #926f3f); }
+.product-art-footwear { background: linear-gradient(145deg, #895f3b, #392419 58%, #b18854); }
 .product-art-accessories { background: linear-gradient(145deg, #5d5b52, #20211d 60%, #9a875b); }
 .product-photo { background-position: center; background-size: cover; inset: 0; opacity: .82; position: absolute; }
 .product-info { padding: 1.4rem; }

@@ -8,7 +8,7 @@ export interface Product {
   created_at: string;
 }
 
-export type ProductCategory = 'Apparel' | 'Leather Goods' | 'Accessories';
+export type ProductCategory = 'Women' | 'Men' | 'Footwear' | 'Accessories';
 
 export interface CartItem {
   product: Product;
