@@ -29,15 +29,14 @@ export default function Navbar({ cartCount, onBagClick, onPreviewNotice }: Props
           {!isAdmin && <button type="button" onClick={() => user ? setAccountOpen(true) : undefined} className="nav-link">Account</button>}
         </nav>
         <div className="header-actions">
-          
           {!loading && !profileLoading && isAdmin && (
             <>
               <span className="admin-badge">{profile?.admin_seq_id ?? 'ADMIN'}</span>
-              <Link href="/admin" className="admin-studio-link">Admin Studio â†—</Link>
+              <Link href="/admin" className="admin-studio-link">Admin Studio -&gt;</Link>
             </>
           )}
           {!loading && !profileLoading && !isAdmin && user && (
-            <button type="button" onClick={() => setAccountOpen(true)} className="account-icon" aria-label="Open my profile">âŒ¾</button>
+            <button type="button" onClick={() => setAccountOpen(true)} className="account-icon" aria-label="Open my profile">Account</button>
           )}
           {!loading && !profileLoading && !user && <Link href="/login" className="admin-studio-link">Login / Sign Up</Link>}
           <button type="button" onClick={isAdmin || profileLoading ? onPreviewNotice : onBagClick} className="cart-button" aria-label={isAdmin ? 'Catalogue preview mode' : `Open shopping bag, ${cartCount} items`}>
