@@ -22,6 +22,18 @@ interface OrderRecord {
 
 const formatDate = (date: string) => new Intl.DateTimeFormat('en-PK', { dateStyle: 'medium' }).format(new Date(date));
 const formatPrice = (amount: number) => `PKR ${Number(amount).toLocaleString('en-PK')}`;
+const unsafeProfileReference = /locacollection1/i;
+
+const sanitizeProfileValue = (value: string | null | undefined, fallback: string) => {
+  if (!value || unsafeProfileReference.test(value)) return fallback;
+  return value;
+};
+
+const sanitizeProfile = (profile: Profile): Profile => ({
+  ...profile,
+  display_name: sanitizeProfileValue(profile.display_name, 'Legacy Goods Admin'),
+  email: sanitizeProfileValue(profile.email, 'Email unavailable'),
+});
 
 export default function AdminStudio() {
   const router = useRouter();
@@ -55,11 +67,11 @@ export default function AdminStudio() {
       } else if (view === 'customers') {
         const { data, error: customersError } = await supabase.from('profiles').select('id, email, role, admin_seq_id, display_name, created_at').eq('role', 'customer').order('created_at', { ascending: false });
         if (customersError) throw customersError;
-        setCustomers((data ?? []).filter((item) => item.role === 'customer') as Profile[]);
+        setCustomers((data ?? []).filter((item) => item.role === 'customer').map((item) => sanitizeProfile(item as Profile)));
       } else {
         const { data, error: adminsError } = await supabase.from('profiles').select('id, email, role, admin_seq_id, display_name, created_at').eq('role', 'admin').order('created_at', { ascending: true });
         if (adminsError) throw adminsError;
-        setAdmins((data ?? []).filter((item) => item.role === 'admin') as Profile[]);
+        setAdmins((data ?? []).filter((item) => item.role === 'admin').map((item) => sanitizeProfile(item as Profile)));
       }
     } catch (loadError) {
       setError(loadError instanceof Error ? loadError.message : 'Unable to load Studio data.');
