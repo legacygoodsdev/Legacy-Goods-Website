@@ -46,7 +46,7 @@ export default function SignupPage() {
             <p className="eyebrow text-[#c5a059]">One last detail</p>
             <h1 className="auth-title">Check your inbox.</h1>
             <p className="auth-subtitle">We sent a verification link to <strong>{email}</strong>. Confirm your email before signing in.</p>
-            <Link href="/login" className="auth-submit block text-center">Return to sign in</Link>
+            <Link href="/login.html" className="auth-submit block text-center">Return to sign in</Link>
           </>
         ) : (
           <>
@@ -59,7 +59,7 @@ export default function SignupPage() {
               {error && <p className="auth-error">{error}</p>}
               <button type="submit" disabled={submitting} className="auth-submit">{submitting ? 'Creating account...' : 'Create account'}</button>
             </form>
-            <p className="auth-subtitle mt-5 text-center">Already registered? <Link href="/login" className="text-[#01411c] underline">Sign in</Link></p>
+            <p className="auth-subtitle mt-5 text-center">Already registered? <Link href="/login.html" className="text-[#01411c] underline">Sign in</Link></p>
           </>
         )}
       </section>

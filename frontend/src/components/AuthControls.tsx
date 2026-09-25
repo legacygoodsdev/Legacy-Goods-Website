@@ -13,7 +13,7 @@ export default function AuthControls() {
   if (!user) {
     return (
       <Link
-        href="/login"
+        href="/login.html"
         className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-emerald-700"
       >
         Login / Sign Up

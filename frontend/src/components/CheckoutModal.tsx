@@ -30,7 +30,7 @@ export default function CheckoutModal({ items, totalAmount, onClose }: Props) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) {
-      router.push('/login');
+      router.push('/login.html');
       return;
     }
     if (!user.email) {

@@ -74,7 +74,7 @@ export default function Home() {
   const addToCart = (product: Product) => {
     if (user && profileLoading) return setToast('Checking account access...');
     if (isAdmin) return previewNotice();
-    if (!user) return router.push('/login');
+    if (!user) return router.push('/login.html');
     setCart((current) => {
       const existing = current.find((item) => item.product.id === product.id);
       return existing ? current.map((item) => item.product.id === product.id ? { ...item, quantity: item.quantity + 1 } : item) : [...current, { product, category: categoryFor(product), quantity: 1 }];
@@ -85,7 +85,7 @@ export default function Home() {
   const handleCheckout = () => {
     if (user && profileLoading) return setToast('Checking account access...');
     if (isAdmin) return previewNotice();
-    if (!user) return router.push('/login');
+    if (!user) return router.push('/login.html');
     if (cart.length) { setCartOpen(false); setCheckoutOpen(true); }
   };
 

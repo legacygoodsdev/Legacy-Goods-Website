@@ -21,7 +21,7 @@ export default function LoginPage() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (!loading && !profileLoading && user) router.replace(isAdmin ? '/admin' : getNextPath());
+    if (!loading && !profileLoading && user) router.replace(isAdmin ? '/admin.html' : getNextPath());
   }, [isAdmin, loading, profileLoading, router, user]);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
