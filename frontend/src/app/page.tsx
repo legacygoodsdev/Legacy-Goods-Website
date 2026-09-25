@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -72,7 +72,7 @@ export default function Home() {
       return;
     }
     if (isAdmin) {
-      setToast('Catalogue Preview Mode — Admins cannot place orders.');
+      setToast('Catalogue Preview Mode â€” Admins cannot place orders.');
       return;
     }
     if (!user) {
@@ -101,7 +101,7 @@ export default function Home() {
       return;
     }
     if (isAdmin) {
-      setToast('Catalogue Preview Mode — Admins cannot place orders.');
+      setToast('Catalogue Preview Mode â€” Admins cannot place orders.');
       return;
     }
     if (!user) {
@@ -116,15 +116,16 @@ export default function Home() {
 
   return (
     <main className="site-shell min-h-screen">
-      <Navbar cartCount={cartCount} onBagClick={() => setCartOpen(true)} onPreviewNotice={() => setToast('Catalogue Preview Mode — Admins cannot place orders.')} />
-      <section id="top" className="hero-section"><div className="hero-copy"><p className="eyebrow text-[#c5a059]">Designed &amp; Crafted in Pakistan</p><h1>Objects with a past.<br /><em>Made for yours.</em></h1><p className="hero-intro">A considered collection of clothing and carry goods, shaped by local hands and made to move with you.</p><a href="#shop" className="bronze-button">Explore the collection <span>↓</span></a></div><div className="hero-stamp" aria-hidden="true"><span>LG</span><small>HANDMADE<br />IN PAKISTAN</small></div><div className="flag-detail" aria-hidden="true" /></section>
-      <section id="shop" className="shop-section"><div className="section-heading"><div><p className="eyebrow text-[#7c6232]">The first edition</p><h2>Made to be kept.</h2></div><p className="max-w-sm text-sm leading-6 text-[#756b5e]">Small-batch pieces with honest materials, useful forms, and the marks of the hands that made them.</p></div><div className="filter-bar"><div className="category-tabs" role="tablist" aria-label="Product categories">{categories.map((category) => <button key={category} type="button" onClick={() => setActiveCategory(category)} className={activeCategory === category ? 'category-tab active' : 'category-tab'}>{category}</button>)}</div><label className="search-field"><span>Search</span><input type="search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Find a piece" /></label></div>{loading ? <div className="catalog-message">Gathering the collection...</div> : filteredProducts.length === 0 ? <div className="catalog-message">No pieces match that search.</div> : <div className="product-grid">{filteredProducts.map((product, index) => { const category = categoryFor(product); return <article key={product.id} className="product-card" style={{ animationDelay: `${index * 80}ms` }}><div className={`product-art product-art-${category.toLowerCase().replace(' ', '-')}`}>{product.image_url && <div className="product-photo" style={{ backgroundImage: `url(${product.image_url})` }} />}<span>{product.title.slice(0, 2).toUpperCase()}</span><small>{category}</small></div><div className="product-info"><p className="eyebrow text-[#7c6232]">{category}</p><h3>{product.title}</h3><p className="product-description">{product.description}</p><div className="product-footer"><strong>{formatPrice(product.price)}</strong><button type="button" onClick={() => addToCart(product)} className="text-button">Buy now <span>↗</span></button></div></div></article>; })}</div>}</section>
+      <Navbar cartCount={cartCount} onBagClick={() => setCartOpen(true)} onPreviewNotice={() => setToast('Catalogue Preview Mode â€” Admins cannot place orders.')} />
+      <section id="top" className="hero-section"><div className="hero-copy"><p className="eyebrow text-[#c5a059]">Designed &amp; Crafted in Pakistan</p><h1>Objects with a past.<br /><em>Made for yours.</em></h1><p className="hero-intro">A considered collection of clothing and carry goods, shaped by local hands and made to move with you.</p><a href="#shop" className="bronze-button">Explore the collection <span>â†“</span></a></div><div className="hero-stamp" aria-hidden="true"><span>LG</span><small>HANDMADE<br />IN PAKISTAN</small></div><div className="flag-detail" aria-hidden="true" /></section>
+      <section id="shop" className="shop-section"><div className="section-heading"><div><p className="eyebrow text-[#7c6232]">The first edition</p><h2>Made to be kept.</h2></div><p className="max-w-sm text-sm leading-6 text-[#756b5e]">Small-batch pieces with honest materials, useful forms, and the marks of the hands that made them.</p></div><div className="filter-bar"><div className="category-tabs" role="tablist" aria-label="Product categories">{categories.map((category) => <button key={category} type="button" onClick={() => setActiveCategory(category)} className={activeCategory === category ? 'category-tab active' : 'category-tab'}>{category}</button>)}</div><label className="search-field"><span>Search</span><input type="search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Find a piece" /></label></div>{loading ? <div className="catalog-message">Gathering the collection...</div> : filteredProducts.length === 0 ? <div className="catalog-message">No pieces match that search.</div> : <div className="product-grid">{filteredProducts.map((product, index) => { const category = categoryFor(product); return <article key={product.id} className="product-card" style={{ animationDelay: `${index * 80}ms` }}><div className={`product-art product-art-${category.toLowerCase().replace(' ', '-')}`}>{product.image_url && <div className="product-photo" style={{ backgroundImage: `url(${product.image_url})` }} />}<span>{product.title.slice(0, 2).toUpperCase()}</span><small>{category}</small></div><div className="product-info"><p className="eyebrow text-[#7c6232]">{category}</p><h3>{product.title}</h3><p className="product-description">{product.description}</p><div className="product-footer"><strong>{formatPrice(product.price)}</strong><button type="button" onClick={() => addToCart(product)} className="text-button">Buy now <span>â†—</span></button></div></div></article>; })}</div>}</section>
       <section id="workshop" className="workshop-section"><div className="workshop-mark">LG</div><div><p className="eyebrow text-[#c5a059]">The workshop</p><h2>Made slowly.<br /><em>Worn often.</em></h2></div><p>From the looms of Faisalabad to the leather benches of Lahore, every Legacy Goods piece carries a little of home in it.</p></section>
       <section id="about" className="about-section"><p className="eyebrow text-[#7c6232]">Our point of view</p><h2>Good things take<br /><em>their own time.</em></h2><p>We make fewer things, better. Thoughtful goods for daily rituals, designed in Pakistan and made to cross generations.</p></section>
-      <footer className="site-footer"><span className="monogram small">LG</span><span>LEGACY GOODS / EST. 2026</span><a href="https://instagram.com/locacollection1" target="_blank" rel="noreferrer">@locacollection1</a></footer>
+      <footer className="site-footer"><span className="monogram small">LG</span><span>LEGACY GOODS / EST. 2026</span></footer>
       {toast && <div className="preview-toast" role="status">{toast}</div>}
       {cartOpen && <CartDrawer items={cart} total={cartTotal} onClose={() => setCartOpen(false)} onChangeQuantity={updateQuantity} onRemove={(productId) => updateQuantity(productId, 0)} onCheckout={handleCheckout} />}
       {checkoutOpen && cart.length > 0 && <CheckoutModal items={cart} totalAmount={cartTotal} onClose={() => setCheckoutOpen(false)} />}
     </main>
   );
 }
+
