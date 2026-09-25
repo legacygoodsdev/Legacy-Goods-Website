@@ -6,8 +6,9 @@ import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 import { useAuth } from '@/context/AuthContext';
 import type { Profile, UserRole } from '@/lib/auth';
+import type { Product } from '@/types';
 
-type AdminView = 'orders' | 'customers' | 'admins';
+type AdminView = 'orders' | 'customers' | 'admins' | 'catalogue';
 
 interface OrderRecord {
   id: string;
@@ -42,6 +43,9 @@ export default function AdminStudio() {
   const [orders, setOrders] = useState<OrderRecord[]>([]);
   const [customers, setCustomers] = useState<Profile[]>([]);
   const [admins, setAdmins] = useState<Profile[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [orderSearch, setOrderSearch] = useState('');
+  const [orderStatus, setOrderStatus] = useState('All');
   const [dataLoading, setDataLoading] = useState(false);
   const [error, setError] = useState('');
   const [actionId, setActionId] = useState('');
@@ -68,10 +72,14 @@ export default function AdminStudio() {
         const { data, error: customersError } = await supabase.from('profiles').select('id, email, role, admin_seq_id, display_name, created_at').eq('role', 'customer').order('created_at', { ascending: false });
         if (customersError) throw customersError;
         setCustomers((data ?? []).filter((item) => item.role === 'customer').map((item) => sanitizeProfile(item as Profile)));
-      } else {
+      } else if (view === 'admins') {
         const { data, error: adminsError } = await supabase.from('profiles').select('id, email, role, admin_seq_id, display_name, created_at').eq('role', 'admin').order('created_at', { ascending: true });
         if (adminsError) throw adminsError;
         setAdmins((data ?? []).filter((item) => item.role === 'admin').map((item) => sanitizeProfile(item as Profile)));
+      } else {
+        const { data, error: productsError } = await supabase.from('products').select('*').order('created_at', { ascending: false });
+        if (productsError) throw productsError;
+        setProducts((data ?? []) as Product[]);
       }
     } catch (loadError) {
       setError(loadError instanceof Error ? loadError.message : 'Unable to load Studio data.');
@@ -94,6 +102,25 @@ export default function AdminStudio() {
     setActionId('');
   };
 
+  const archiveOrder = async (orderId: string) => {
+    if (!window.confirm('Archive this order? This removes it from the active order desk.')) return;
+    setActionId(orderId);
+    const { error: deleteError } = await supabase.from('orders').delete().eq('id', orderId);
+    if (deleteError) setError(deleteError.message);
+    await loadView();
+    setActionId('');
+  };
+
+  const visibleOrders = orders.filter((order) => {
+    const text = `${order.id} ${order.customer_name} ${order.customer_email} ${order.city}`.toLowerCase();
+    const matchesSearch = text.includes(orderSearch.toLowerCase());
+    const matchesStatus = orderStatus === 'All' || (order.payment_status ?? 'Pending').toLowerCase().includes(orderStatus.toLowerCase());
+    return matchesSearch && matchesStatus;
+  });
+  const paidRevenue = orders.filter((order) => (order.payment_status ?? '').toLowerCase().includes('paid')).reduce((sum, order) => sum + Number(order.total_amount), 0);
+  const inProgress = orders.filter((order) => !['delivered', 'fulfilled'].some((status) => (order.payment_status ?? '').toLowerCase().includes(status))).length;
+  const delivered = orders.filter((order) => ['delivered', 'fulfilled'].some((status) => (order.payment_status ?? '').toLowerCase().includes(status))).length;
+
   if (loading || profileLoading || !user || !isAdmin) {
     return <main className="admin-loading">Verifying Studio access...</main>;
   }
@@ -113,17 +140,21 @@ export default function AdminStudio() {
             <button type="button" onClick={() => setView('orders')} className={view === 'orders' ? 'active' : ''}><span>01</span>Orders &amp; Fulfillment</button>
             <button type="button" onClick={() => setView('customers')} className={view === 'customers' ? 'active' : ''}><span>02</span>Registered Users</button>
             <button type="button" onClick={() => setView('admins')} className={view === 'admins' ? 'active' : ''}><span>03</span>Admins Desk</button>
+            <button type="button" onClick={() => setView('catalogue')} className={view === 'catalogue' ? 'active' : ''}><span>04</span>Catalogue Management</button>
           </nav>
         </aside>
         <section className="admin-content">
-          <div className="admin-content-header"><div><p className="eyebrow text-[#7c6232]">{view === 'orders' ? 'Orders & Fulfillment' : view === 'customers' ? 'Customer directory' : 'Restricted directory'}</p><h2>{view === 'orders' ? 'The latest orders.' : view === 'customers' ? 'Registered users.' : 'Admins Desk.'}</h2></div><button type="button" onClick={() => void loadView()} className="admin-refresh">Refresh</button></div>
+          <div className="admin-content-header"><div><p className="eyebrow text-[#7c6232]">{view === 'orders' ? 'Orders & Fulfillment' : view === 'customers' ? 'Customer directory' : view === 'admins' ? 'Restricted directory' : 'Product catalogue'}</p><h2>{view === 'orders' ? 'The latest orders.' : view === 'customers' ? 'Registered users.' : view === 'admins' ? 'Admins Desk.' : 'The live edit.'}</h2></div><button type="button" onClick={() => void loadView()} className="admin-refresh">Refresh</button></div>
+          {view === 'orders' && <div className="admin-metrics"><div><span>Total orders</span><strong>{orders.length}</strong></div><div><span>In progress</span><strong>{inProgress}</strong></div><div><span>Delivered</span><strong>{delivered}</strong></div><div><span>Paid revenue</span><strong>{formatPrice(paidRevenue)}</strong></div></div>}
           {error && <p className="admin-error">{error}</p>}
           {dataLoading ? <div className="admin-empty">Loading Studio data...</div> : view === 'orders' ? (
-            <div className="admin-table-wrap"><table className="admin-table"><thead><tr><th>Order</th><th>Customer</th><th>City</th><th>Status</th><th>Total</th><th>Placed</th></tr></thead><tbody>{orders.map((order) => <tr key={order.id}><td className="admin-code">{order.id.slice(0, 8)}</td><td><strong>{order.customer_name}</strong><small>{order.customer_email}</small></td><td>{order.city}</td><td><span className="status-pill">{order.payment_status ?? 'Pending'}</span></td><td>{formatPrice(order.total_amount)}</td><td>{formatDate(order.created_at)}</td></tr>)}</tbody></table>{orders.length === 0 && <div className="admin-empty">No orders have arrived yet.</div>}</div>
+            <div className="admin-table-wrap"><div className="admin-table-tools"><input value={orderSearch} onChange={(event) => setOrderSearch(event.target.value)} placeholder="Search orders or customers" aria-label="Search orders" /><select value={orderStatus} onChange={(event) => setOrderStatus(event.target.value)} aria-label="Filter order status"><option>All</option><option>Pending</option><option>Paid</option><option>Fulfilled</option><option>Delivered</option></select></div><table className="admin-table"><thead><tr><th>Order</th><th>Customer</th><th>City</th><th>Status</th><th>Total</th><th>Placed</th><th /></tr></thead><tbody>{visibleOrders.map((order) => <tr key={order.id}><td className="admin-code">{order.id.slice(0, 8)}</td><td><strong>{order.customer_name}</strong><small>{order.customer_email}</small></td><td>{order.city}</td><td><span className="status-pill">{order.payment_status ?? 'Pending'}</span></td><td>{formatPrice(order.total_amount)}</td><td>{formatDate(order.created_at)}</td><td><button type="button" disabled={actionId === order.id} onClick={() => void archiveOrder(order.id)} className="directory-action">Archive</button></td></tr>)}</tbody></table>{visibleOrders.length === 0 && <div className="admin-empty">No matching orders.</div>}</div>
           ) : view === 'customers' ? (
             <div className="admin-directory">{customers.map((customer) => <article className="directory-row" key={customer.id}><div className="directory-avatar">{(customer.display_name ?? 'C').slice(0, 1).toUpperCase()}</div><div><strong>{customer.display_name ?? 'Customer'}</strong><small>{customer.email ?? customer.id}</small></div><span>{formatDate(customer.created_at)}</span><button type="button" disabled={actionId === customer.id} onClick={() => void changeRole(customer.id, 'admin')} className="directory-action">Promote to admin</button></article>)}{customers.length === 0 && <div className="admin-empty">No customer profiles found.</div>}</div>
-          ) : (
+          ) : view === 'admins' ? (
             <div className="admin-directory">{admins.map((admin) => <article className="directory-row" key={admin.id}><div className="directory-avatar admin">✦</div><div><strong>{admin.admin_seq_id ?? 'ADMIN'}</strong><small>{admin.email ?? 'Email unavailable'}</small></div><span>{formatDate(admin.created_at)}</span><button type="button" disabled={actionId === admin.id || admin.id === user.id} onClick={() => void changeRole(admin.id, 'customer')} className="directory-action">{admin.id === user.id ? 'Current account' : 'Demote'}</button></article>)}{admins.length === 0 && <div className="admin-empty">No admin profiles found.</div>}</div>
+          ) : (
+            <div className="catalogue-grid">{products.map((product) => <article className="catalogue-item" key={product.id}><div><p className="eyebrow text-[#7c6232]">Active product</p><h3>{product.title}</h3><p>{product.description}</p></div><strong>{formatPrice(product.price)}</strong></article>)}{products.length === 0 && <div className="admin-empty">No catalogue products found.</div>}</div>
           )}
         </section>
       </div>
